@@ -4,7 +4,7 @@
   "type": "commonjs",
   "main": "gemini.js",
   "scripts": {
-    "start": "node gemini.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "@huggingface/inference": "^2.6.7",

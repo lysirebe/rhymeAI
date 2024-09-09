@@ -1,10 +1,16 @@
-rhyme.ai is a mini ai tool that generates custom poems based off any descriptions, themes you want. 
+# rhyme.ai
 
-i love poetry and being inpired through beautifully crafted words, so i built this as a fun and quick way to gain a creative boost to pick me up !! 
+## From Prompt to Poetry
 
-still a work in progress but enjoy for now 
+rhyme.ai is a mini AI tool that generates custom poems based on any descriptions or themes you provide. I’ve always loved poetry and being inspired by beautifully crafted words, so I built this as a fun and quick way to gain a creative boost or pick-me-up!
 
-it was made using huggingface.js api >
+It’s still a work in progress, but feel free to enjoy it for now.
+
+### Tech Stack
+- Built using the [Huggingface.js API](https://huggingface.co/docs/js).
+
+Stay tuned for more updates!
+
 
 
 ![image](https://github.com/user-attachments/assets/2362035b-09f2-465c-80be-25fb7e19421c)

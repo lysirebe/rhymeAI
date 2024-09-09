@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>Rhyme.ai</h1>
+    <p>From prompt to poetry</p>
+  </div>
+
+
+  <form class="form-container" id="poem-form">
+    <textarea
+      id='prompt'
+      name='user_input' 
+      cols="50"
+      rows="5"
+      placeholder="Enter a brief description, themes, or ideas of somethig you want a poem written of "></textarea>
+    <button type="submit">Submit</button>
+  </form>
+
+  <div class='poem-container'>
+    <div class='prompt'></div>
+    <div class='title'></div>
+    <div class='poem'></div>
+    <div>
+      <button class='new-poem'>Create new Poem</button>
+      <button class='back-button'>Go Back</button>
+    </div>
+  </div>
+
+  <div class="historyContainer">
+    <h2>Saved Poems</h2>
+      <div class="postContainer"></div>
+    </div>
+  <script>
+
+    let form_container = document.querySelector('.form-container');
+    let user_input = document.getElementById('prompt');
+  
+    let poem_container = document.querySelector('.poem-container');
+    let poem_prompt = document.querySelector('.prompt');
+    let poem_title = document.querySelector('.title');
+    let new_poem = document.querySelector(".poem");
+    let wrapper = document.querySelector(".wrapper");
+
+    let post_container =  document.querySelector('.postContainer');
+    let historyContainer = document.querySelector('.historyContainer');
+      
+
+    let new_poem_button = document.querySelector('.new-poem');
+    // let view_poem_button = document.querySelector('.view-poem');
+    let back_button = document.querySelector('.back-button');
+    let savedPoems = [];
+  
+    async function fetchResponse() {
+      try {
+        const response = await fetch("/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: user_input.value }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const responseData = await response.json();
+        console.log(responseData);
+        return responseData;
+      } catch (error) {
+        console.error('Error during fetch:', error);
+        return null;
+      }
+    }
+  
+
+
+function displayPoem(prompt, responseText) {
+
+    poem_prompt.innerHTML = `<p>Poem Prompt: ${prompt}</p>`;
+    poem_title.innerHTML = `<h2>${responseText.title}</h2>`;
+    new_poem.innerHTML = `<pre>${responseText.poem}</pre>`;
+ }
+
+function savePoem(prompt, responseText){
+  
+  let id = savedPoems.length 
+  let savedPoem = {
+    id:id,
+    prompt:prompt, 
+    poemObject:responseText
+  }
+  savedPoems.push(savedPoem);
+  localStorage.setItem('savedPoems',JSON.stringify(savedPoems));
+  console.log(savedPoems);
+  console.log(savedPoems.length);
+  id = savedPoems.length + 1
+}
+
+
+function submit_prompt() {
+
+  async function handleSubmit(event) {
+
+    event.preventDefault();
+    back_button.style.display = "none";
+    historyContainer.style.display = 'none';
+    form_container.style.display = "none";
+    historyContainer.style.display = 'none';
+    poem_container.style.display = "flex";
+    
+    const prompt = user_input.value;
+    const responseText = await fetchResponse(prompt);
+
+    if (responseText) {
+      displayPoem(prompt, responseText);
+      savePoem(prompt, responseText);
+    }
+  }
+  form_container.addEventListener("submit", handleSubmit);
+}
+
+
+
+
+function handleNewPoem() {
+    form_container.style.display = "flex";
+    poem_container.style.display = "none";
+    user_input.value = ""; 
+    poem_prompt.innerHTML = "";
+    poem_title.innerHTML = "";
+    new_poem.innerHTML = "";
+  }
+
+
+function displaySavedPoems(){
+    historyContainer.style.display = 'flex';
+    let savedPoemArray = JSON.parse(localStorage.getItem('savedPoems')|| [])
+ 
+
+
+    const displayedPoems = [...post_container.querySelectorAll('.saved-poem-container')].map( created_poem => created_poem.dataset.id);
+      savedPoemArray.forEach(obj => {
+            if (!displayedPoems.includes(obj.id.toString())) {
+                  const saved_poem_container  = document.createElement('div');
+                  saved_poem_container.classList = 'saved-poem-container';
+                  saved_poem_container.dataset.id = obj.id;
+                  saved_poem_container.innerHTML = `
+                  <p class="saved-poem-prompt">Poem Prompt: ${obj.prompt}</p>
+                  <h3 class='saved-poem-title'>${obj.poemObject.title}</h3>
+                  <div class='saved-poem'>${obj.poemObject.poem}</div>
+                  <button id ${obj.id} class="view-poem">View</button>
+                    </div>`
+                  // const viewButton = document.createElement('button')
+                  // viewButton.classList = 'view-poem';
+                  // viewButton.id = obj.id
+                  // viewButton.textContent ="View"
+                  // saved_poem_container.appendChild(viewButton)
+                  // saved_poem_container.innerHTML += `</div>`
+                  // wrapper.appendChild(saved_poem_container);
+                  post_container.appendChild(saved_poem_container)
+              }
+            });
+
+            if(document.querySelector('view-poem')){
+              console.log('inside loop')
+              document.querySelector('view-poem').addEventListener('click', viewPoem())
+            } else{ 
+              console.log('no poems saved yet')
+            }
+          };
+
+function handleNewPoem() {
+    form_container.style.display = "flex";
+    poem_container.style.display = "none";
+    user_input.value = ""; 
+    poem_prompt.innerHTML = "";
+    poem_title.innerHTML = "";
+    new_poem.innerHTML = "";
+  }
+
+
+
+function create_new_poem(fn1, fn2) {
+  new_poem_button.addEventListener('click',() => {    
+      fn1();
+      fn2(); 
+});
+}
+
+
+// when user clicks view poem, display that saved poem by pulling it from local storage array. 
+//then when they click go back, present main screen still with saved poems being displayed and form
+
+
+function viewPoem(){
+      let savedPoemArray = JSON.parse(localStorage.getItem('savedPoems')|| [])
+      console.log('button clicked')
+      const poemData = savedPoemArray[(document.querySelector(".view-poem")).id]
+      console.log(poemData)
+
+      historyContainer.style.display = 'none';
+      form_container.style.display = "none";
+      poem_container.style.display = "flex";
+      new_poem_button.style.display = "none";
+      back_button.style.display = "block";
+      
+      poem_prompt.innerHTML = `<p>Poem Prompt: ${poemData.prompt}</p>`;
+      poem_title.innerHTML = `<h2>${poemData.poemObject.title}</h2>`;
+      new_poem.innerHTML = `<pre>${poemData.poemObject.poem}</pre>`;
+
+      // back_button.addEventListener('click',() => {    
+      // fn1();
+      // fn2(); 
+
+
+  }
+
+
+
+
+// Add event listener to all buttons with class 'find-parent-btn'
+// document.querySelectorAll('.view-poem').forEach(button => {
+//   button.addEventListener('click', function() {
+
+//     historyContainer.style.display = 'none';
+//     form_container.style.display = "none";
+//     historyContainer.style.display = 'none';
+//     new_poem_button.style.display = "block";
+
+    
+//     // Find the closest div and log its id
+//     const parentDiv = this.closest('div');
+//     if (parentDiv) {
+//       console.log('Parent div ID:', parentDiv.id);
+//     } else {
+//       console.log('No parent div found');
+//     }
+//   });
+// });
+
+
+
+    // Object.entries(obj.poemObject).forEach(([title, poem]) => {
+    //     console.log(title)
+    //     console.log(poem)
+        // saved_poem_title.innerHTML = `${title}`;
+        // saved_poem.innerHTML = `${poem}`;
+
+    //     saved_poem += `<h3 class='saved-poem-title'>${title}</h3>
+    //     <div class='saved-poem'>${poem}</div>
+    //     <button class='view-poem'>View poem</button>
+    //   </div>`
+       
+    //  });
+
+
+
+
+  //   let saved_poem = ``;
+
+  //   savedPoemArray.forEach(obj => {
+  //   const saved_poem_container  = document.createElement('div');
+  //   saved_poem_container.classList = 'saved-poem-container';
+
+  //   saved_poem +=  `<div class='saved-poem-container'>
+  //       <p class="saved-poem-prompt">Poem Prompt: ${obj.prompt}</p>
+  //       <h3 class='saved-poem-title'>${obj.poemObject.title}</h3>
+  //       <div class='saved-poem'>${obj.poemObject.poem}</div>
+  //       <button class='view-poem'>View poem</button>
+  //     </div>`
+  //    post_container.innerHTML += saved_poem;
+  // });
+
+
+// console.log(obj.prompt)
+//       saved_poem_prompt.innerHTML = `Poem Prompt ${obj.prompt}`;
+//       Object.entries(obj.poemObject).forEach(([title, poem]) => {
+//         console.log(title)
+//         console.log(poem)
+//         saved_poem_title.innerHTML = `${title}`;
+//         saved_poem.innerHTML = `${poem}`;
+//      });
+
+
+
+// function submit_prompt() {
+  //   async function handleSubmit(event) {
+  //     event.preventDefault();
+  //     form_container.style.display = "none";
+  //     poem_container.style.display = "flex";
+  //     console.log(user_input.value);
+  //     poem_prompt.innerHTML = `<p>Poem Prompt: ${user_input.value}</p>`;
+  //     const responseText = await fetchResponse();
+  //     console.log(responseText.poem)
+
+  //     if (responseText) {
+  //       poem_title.innerHTML = `<h2>${responseText.title}</h2>`;
+  //       new_poem.innerHTML = `<pre>${responseText.poem}</pre>`;
+  //     }
+  //   }
+
+  //   form_container.addEventListener("submit", handleSubmit);
+  // }
+
+  // function regenerate_poem() {
+//   async function handleRegenerate() {
+//     const prompt = user_input.value;
+//     const responseText = await fetchResponse(prompt);
+
+//     if (responseText) {
+//       displayPoem(prompt, responseText);
+//     }
+//   }
+
+//   regen_button.addEventListener("click", handleRegenerate);
+// }
+
+
+submit_prompt();
+create_new_poem(handleNewPoem,displaySavedPoems);// viewSavedPoem()
+    </script>
+</body>
+</html>
+

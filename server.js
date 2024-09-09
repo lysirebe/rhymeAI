@@ -8,7 +8,7 @@ const hf = new HfInference("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");
 const app = express();
 const PORT = 3000;
 app.use(json());
-app.use(static(path.join(__dirname, "public")));
+app.use(static(path.join(__dirname, "docs")));
 
 // send back files to the frontend
 app.get('/', (req, res) => {
